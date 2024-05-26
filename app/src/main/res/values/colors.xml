@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#5A189A</color>
+    <color name="primaryVariantColor">#ffffff</color>
+    <color name="secondaryColor">#07b1a0</color>
+    <color name="secondaryVariantColor">#008172</color>
+
+    <color name="backgroundColor">#ffffff</color>
+    <color name="surfaceColor">#ffffff</color>
+
+    <color name="onPrimaryColor">#ffffff</color>
+    <color name="onSecondaryColor">#ffffff</color>
+
+    <color name="onBackgroundColor">#121212</color>
+    <color name="onSurfaceColor">#121212</color>
+
+    <color name="activeColor">#388E3C</color>
+    <color name="inActiveColor">#C2185B</color>
+</resources>
