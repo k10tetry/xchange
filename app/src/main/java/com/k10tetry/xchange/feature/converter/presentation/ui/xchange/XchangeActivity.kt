@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.google.android.material.snackbar.Snackbar
 import com.k10tetry.xchange.R
 import com.k10tetry.xchange.databinding.ActivityXchangeBinding
 import com.k10tetry.xchange.feature.converter.common.ExceptionType
@@ -108,7 +109,8 @@ class XchangeActivity : AppCompatActivity() {
                             ExceptionType.NETWORK -> {
                                 binding.root.snackbar(
                                     getString(R.string.network_connection_error),
-                                    actionText = getString(R.string.retry)
+                                    actionText = getString(R.string.retry),
+                                    duration = Snackbar.LENGTH_LONG
                                 ) {
                                     xchangeViewModel.getCurrencyRates()
                                 }
