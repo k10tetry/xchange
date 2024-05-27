@@ -14,9 +14,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.k10tetry.xchange.R
 import com.k10tetry.xchange.databinding.ActivityXchangeBinding
+import com.k10tetry.xchange.feature.converter.common.ExceptionType
 import com.k10tetry.xchange.feature.converter.common.clear
-import com.k10tetry.xchange.feature.converter.common.formatAmount
+import com.k10tetry.xchange.feature.converter.common.formatInputAmount
 import com.k10tetry.xchange.feature.converter.di.qualifier.GridLayout
 import com.k10tetry.xchange.feature.converter.di.qualifier.LinearLayout
 import com.k10tetry.xchange.feature.converter.presentation.ui.currency.CurrencyActivity
@@ -24,7 +26,7 @@ import com.k10tetry.xchange.feature.converter.presentation.utils.NetworkConnecti
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeAmountFilter
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeItemDecorator
 import com.k10tetry.xchange.feature.converter.presentation.utils.hideKeyboard
-import com.k10tetry.xchange.feature.converter.presentation.utils.toast
+import com.k10tetry.xchange.feature.converter.presentation.utils.snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
@@ -80,9 +82,7 @@ class XchangeActivity : AppCompatActivity() {
         initViews()
         initObservers()
 
-        // TODO: Duplicate api call for the first time
         xchangeViewModel.getCurrencyRates()
-
         xchangeViewModel.getBaseCurrencyRates()
     }
 
@@ -103,9 +103,20 @@ class XchangeActivity : AppCompatActivity() {
                 }
 
                 launch {
-                    // TODO: Pending review, changes required.
-                    xchangeViewModel.toastFlow.collect {
-                        toast(it)
+                    xchangeViewModel.snackbarFlow.collect {
+                        when (it) {
+                            ExceptionType.NETWORK -> {
+                                binding.root.snackbar(
+                                    getString(R.string.network_connection_error),
+                                    actionText = getString(R.string.retry)
+                                ) {
+                                    xchangeViewModel.getCurrencyRates()
+                                }
+                            }
+
+                            ExceptionType.PARSING -> binding.root.snackbar(getString(R.string.parsing_error))
+                            ExceptionType.COMMON -> binding.root.snackbar(getString(R.string.something_went_wrong))
+                        }
                     }
                 }
 
@@ -113,7 +124,7 @@ class XchangeActivity : AppCompatActivity() {
                 launch {
                     attachTextWatcher(binding.editTextAmount).debounce(DEBOUNCE_TIME)
                         .collect { amount ->
-                            if (amount.isNullOrEmpty().not() and (amount?.isNotBlank() == true)) {
+                            if (amount.isNullOrEmpty().not()) {
                                 xchangeViewModel.convertCurrency(amount.toString().clear())
                             } else {
                                 xchangeViewModel.clearRates()
@@ -158,7 +169,7 @@ class XchangeActivity : AppCompatActivity() {
 
                 if (s.toString().isNotEmpty()) {
                     editText.removeTextChangedListener(this)
-                    editText.setText(s.toString().clear().formatAmount())
+                    editText.setText(s.toString().clear().formatInputAmount())
                     editText.setSelection(editText.text?.toString()?.length ?: 0)
                     editText.addTextChangedListener(this)
                 }

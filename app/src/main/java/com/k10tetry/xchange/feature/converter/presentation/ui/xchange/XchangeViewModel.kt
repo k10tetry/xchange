@@ -2,19 +2,17 @@ package com.k10tetry.xchange.feature.converter.presentation.ui.xchange
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.k10tetry.xchange.feature.converter.domain.Resource
+import com.k10tetry.xchange.feature.converter.common.ExceptionType
 import com.k10tetry.xchange.feature.converter.domain.usecase.BaseCurrencyRateUseCase
 import com.k10tetry.xchange.feature.converter.domain.usecase.ConvertCurrency
 import com.k10tetry.xchange.feature.converter.domain.usecase.GetRatesUseCase
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
@@ -37,18 +35,16 @@ class XchangeViewModel @Inject constructor(
 
     private var originalCurrencyRates = emptyList<Pair<String, String>>()
 
-    // TODO: Pending Review
-    private val _toastFlow = MutableSharedFlow<String>()
-    val toastFlow = _toastFlow.asSharedFlow()
+    private val _snackbarFlow = MutableSharedFlow<ExceptionType>()
+    val snackbarFlow = _snackbarFlow.asSharedFlow()
 
-    // TODO: Retry mechanism
     fun getCurrencyRates() {
         viewModelScope.launch(dispatcher.io) {
             getRatesUseCase.fetchRates().catch { exception ->
                 when (exception) {
-                    is IOException -> _toastFlow.emit("Network connection error")
-                    is JSONException -> _toastFlow.emit("Parsing error")
-                    else -> _toastFlow.emit("Something went wrong")
+                    is IOException -> _snackbarFlow.emit(ExceptionType.NETWORK)
+                    is JSONException -> _snackbarFlow.emit(ExceptionType.PARSING)
+                    else -> _snackbarFlow.emit(ExceptionType.COMMON)
                 }
             }.collect {
                 originalCurrencyRates = it

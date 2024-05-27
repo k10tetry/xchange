@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Xchange</string>
+    <string name="network_connection_error">Network connection error</string>
+    <string name="parsing_error">Parsing error</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="retry">Retry</string>
 </resources>

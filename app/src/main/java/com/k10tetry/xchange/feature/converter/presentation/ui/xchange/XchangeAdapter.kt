@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.k10tetry.xchange.databinding.GridItemCurrencyRatesBinding
 import com.k10tetry.xchange.databinding.ListItemCurrencyRatesBinding
-import com.k10tetry.xchange.feature.converter.common.formatAmount
+import com.k10tetry.xchange.feature.converter.common.formatRates
 import javax.inject.Inject
 
 class XchangeAdapter @Inject constructor() :
@@ -64,7 +64,7 @@ class XchangeAdapter @Inject constructor() :
 
         fun onBind(currencyRate: Pair<String, String>) {
             binding.textViewName.text = currencyRate.first
-            binding.textViewStatus.text = currencyRate.second.formatAmount()
+            binding.textViewStatus.text = currencyRate.second.formatRates()
         }
 
     }
@@ -74,7 +74,7 @@ class XchangeAdapter @Inject constructor() :
 
         fun onBind(currencyRate: Pair<String, String>) {
             binding.textViewName.text = currencyRate.first
-            binding.textViewStatus.text = currencyRate.second.formatAmount()
+            binding.textViewStatus.text = currencyRate.second.formatRates()
         }
 
     }

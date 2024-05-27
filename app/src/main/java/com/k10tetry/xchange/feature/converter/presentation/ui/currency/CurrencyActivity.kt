@@ -3,7 +3,6 @@ package com.k10tetry.xchange.feature.converter.presentation.ui.currency
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -11,13 +10,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
+import com.k10tetry.xchange.R
 import com.k10tetry.xchange.databinding.ActivityCurrencyBinding
+import com.k10tetry.xchange.feature.converter.common.ExceptionType
 import com.k10tetry.xchange.feature.converter.di.qualifier.LinearLayout
 import com.k10tetry.xchange.feature.converter.presentation.ui.xchange.XchangeActivity
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeItemDecorator
+import com.k10tetry.xchange.feature.converter.presentation.utils.snackbar
 import com.k10tetry.xchange.feature.converter.presentation.utils.toast
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -64,8 +65,20 @@ class CurrencyActivity : AppCompatActivity() {
                 }
 
                 launch {
-                    currencyViewModel.toastFlow.collect {
-                        toast(it)
+                    currencyViewModel.snackbarFlow.collect {
+                        when (it) {
+                            ExceptionType.NETWORK -> {
+                                binding.root.snackbar(
+                                    getString(R.string.network_connection_error),
+                                    actionText = getString(R.string.retry)
+                                ) {
+                                    currencyViewModel.getBaseAndCurrencyList()
+                                }
+                            }
+
+                            ExceptionType.PARSING -> binding.root.snackbar(getString(R.string.parsing_error))
+                            ExceptionType.COMMON -> binding.root.snackbar(getString(R.string.something_went_wrong))
+                        }
                     }
                 }
             }

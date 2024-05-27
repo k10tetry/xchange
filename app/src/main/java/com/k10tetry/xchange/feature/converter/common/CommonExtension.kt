@@ -3,9 +3,18 @@ package com.k10tetry.xchange.feature.converter.common
 import java.text.DecimalFormat
 import java.util.regex.Pattern
 
-fun String.formatAmount(): String {
+fun String.formatInputAmount(): String {
     val formatter = if (this.contains(".")) {
         DecimalFormat("##,##,##,###.${this.decimalPattern()}")
+    } else {
+        DecimalFormat("##,##,##,###")
+    }
+    return formatter.format(this.toDoubleOrNull() ?: 0)
+}
+
+fun String.formatRates(): String {
+    val formatter = if (this.contains(".")) {
+        DecimalFormat("##,##,##,###.##")
     } else {
         DecimalFormat("##,##,##,###")
     }
@@ -30,4 +39,8 @@ fun String.clear(): String {
 fun String.validAmountFormat(): Boolean {
     val pattern = Pattern.compile("(([1-9]{1})([0-9,]{0,${8}})?(?:\\.[0-9]{0,2})?)")
     return pattern.matcher(this).matches()
+}
+
+enum class ExceptionType {
+    NETWORK, PARSING, COMMON
 }

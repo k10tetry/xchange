@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 class ConvertCurrency @Inject constructor() {
 
-    operator fun invoke(amount: String?,toRate: String?,fromRate: String?): String {
+    operator fun invoke(amount: String?, toRate: String?, fromRate: String?): String {
         return if (validate(amount) || validate(fromRate) || validate(toRate)) {
             "NaN"
         } else {
