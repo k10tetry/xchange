@@ -21,27 +21,22 @@ class GetRatesUseCase @Inject constructor(
      * and in case local storage is empty fetch from remote and store
      * in local storage
      */
-    operator fun invoke(): Flow<Resource<List<Pair<String, String>>>> = flow {
-        try {
-            localRepository.getRates()?.let {
-                emit(Resource.Success(jsonToRatesList(it)))
-            } ?: run {
-                remoteRepository.getRates()?.let { rate ->
-                    localRepository.saveRates(rate)
-                    localRepository.getRates()?.let {
-                        emit(Resource.Success(jsonToRatesList(it)))
-                    }
+    fun fetchRates(): Flow<List<Pair<String, String>>> = flow {
+        localRepository.getRates()?.let {
+            emit(jsonToRatesList(it))
+        } ?: run {
+            fetchAndSaveRates {
+                localRepository.getRates()?.let {
+                    emit(jsonToRatesList(it))
                 }
             }
-        } catch (jsonEx: JSONException) {
-            jsonEx.printStackTrace()
-            emit(Resource.Error(message = "JSON Exception"))
-        } catch (io: IOException) {
-            io.printStackTrace()
-            emit(Resource.Error(message = "IO Exception"))
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            emit(Resource.Error(message = "Exception"))
+        }
+    }
+
+    suspend fun fetchAndSaveRates(block: (suspend () -> Unit)? = null) {
+        remoteRepository.getRates()?.let {
+            localRepository.saveRates(it)
+            block?.invoke()
         }
     }
 

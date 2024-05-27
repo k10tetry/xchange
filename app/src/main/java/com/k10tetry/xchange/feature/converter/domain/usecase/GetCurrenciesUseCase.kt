@@ -1,5 +1,6 @@
 package com.k10tetry.xchange.feature.converter.domain.usecase
 
+import com.k10tetry.xchange.feature.converter.domain.Resource
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeLocalRepository
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeRemoteRepository
 import kotlinx.coroutines.flow.Flow
@@ -20,24 +21,22 @@ class GetCurrenciesUseCase @Inject constructor(
      * and in case local storage is empty fetch from remote and store
      * in local storage
      */
-    operator fun invoke(): Flow<List<Pair<String, String>>> = flow {
-        try {
-            localRepository.getCurrencies()?.let {
-                emit(jsonToCurrencyList(it))
-            } ?: run {
-                remoteRepository.getCurrencies()?.let { currencies ->
-                    localRepository.saveCurrencies(currencies)
-                    localRepository.getCurrencies()?.let {
-                        emit(jsonToCurrencyList(it))
-                    }
+    fun fetchCurrencies(): Flow<List<Pair<String, String>>> = flow {
+        localRepository.getCurrencies()?.let {
+            emit(jsonToCurrencyList(it))
+        } ?: run {
+            fetchAndSaveCurrencies {
+                localRepository.getCurrencies()?.let {
+                    emit(jsonToCurrencyList(it))
                 }
             }
-        } catch (jsonEx: JSONException) {
-            jsonEx.printStackTrace()
-        } catch (io: IOException) {
-            io.printStackTrace()
-        } catch (ex: Exception) {
-            ex.printStackTrace()
+        }
+    }
+
+    suspend fun fetchAndSaveCurrencies(block: (suspend () -> Unit)? = null) {
+        remoteRepository.getCurrencies()?.run {
+            localRepository.saveCurrencies(this)
+            block?.invoke()
         }
     }
 

@@ -11,8 +11,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ActivityContext
-import javax.inject.Named
-import javax.inject.Qualifier
 
 @Module
 @InstallIn(ActivityComponent::class)

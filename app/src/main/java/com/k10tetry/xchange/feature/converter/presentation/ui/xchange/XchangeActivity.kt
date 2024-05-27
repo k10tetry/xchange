@@ -15,11 +15,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import com.k10tetry.xchange.databinding.ActivityXchangeBinding
-import com.k10tetry.xchange.feature.converter.data.local.XchangeDataStore
+import com.k10tetry.xchange.feature.converter.common.clear
+import com.k10tetry.xchange.feature.converter.common.formatAmount
 import com.k10tetry.xchange.feature.converter.di.qualifier.GridLayout
 import com.k10tetry.xchange.feature.converter.di.qualifier.LinearLayout
 import com.k10tetry.xchange.feature.converter.presentation.ui.currency.CurrencyActivity
 import com.k10tetry.xchange.feature.converter.presentation.utils.NetworkConnection
+import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeAmountFilter
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeItemDecorator
 import com.k10tetry.xchange.feature.converter.presentation.utils.hideKeyboard
 import com.k10tetry.xchange.feature.converter.presentation.utils.toast
@@ -27,13 +29,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class XchangeActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var xchangeAmountFilter: XchangeAmountFilter
 
     @Inject
     lateinit var xchangeAdapter: XchangeAdapter
@@ -47,25 +50,21 @@ class XchangeActivity : AppCompatActivity() {
     lateinit var linearLayoutManager: LayoutManager
 
     @Inject
-    lateinit var xchangeItemDecorator: XchangeItemDecorator
+    lateinit var itemDecorator: XchangeItemDecorator
 
     @Inject
     lateinit var networkConnection: NetworkConnection
-
-    @Inject
-    lateinit var xchangeDataStore: XchangeDataStore
 
     private val xchangeViewModel by viewModels<XchangeViewModel>()
 
     private lateinit var binding: ActivityXchangeBinding
 
-    private val countryResult =
+    private val currencyResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-                it.data?.extras?.let { bundle ->
-                    xchangeViewModel.updateBaseCurrencyAndConvert(
-                        bundle.getString("CURRENCY"),
-                        binding.editTextAmount.text.toString()
+                it.data?.extras?.getString(CURRENCY_CODE)?.let { currency ->
+                    xchangeViewModel.updateAndConvert(
+                        currency, binding.editTextAmount.text.toString()
                     )
                 }
             }
@@ -81,31 +80,45 @@ class XchangeActivity : AppCompatActivity() {
         initViews()
         initObservers()
 
+        // TODO: Duplicate api call for the first time
         xchangeViewModel.getCurrencyRates()
+
         xchangeViewModel.getBaseCurrencyRates()
     }
 
     private fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                xchangeViewModel.currencyRateFlow.collect {
-                    xchangeAdapter.countryRateList = it
-                }
-            }
-        }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                xchangeViewModel.baseCurrencyFlow.collect {
-                    binding.textViewCurrencyBase.text = it.first
+                launch {
+                    xchangeViewModel.currencyRateFlow.collect {
+                        xchangeAdapter.currencyRateList = it
+                    }
                 }
-            }
-        }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                xchangeViewModel.toastFlow.collect {
-                    toast(it)
+                launch {
+                    xchangeViewModel.baseCurrencyFlow.collect {
+                        binding.textViewCurrencyBase.text = it.first ?: "---"
+                    }
+                }
+
+                launch {
+                    // TODO: Pending review, changes required.
+                    xchangeViewModel.toastFlow.collect {
+                        toast(it)
+                    }
+                }
+
+                // Convert currency after an interval/debounce
+                launch {
+                    attachTextWatcher(binding.editTextAmount).debounce(DEBOUNCE_TIME)
+                        .collect { amount ->
+                            if (amount.isNullOrEmpty().not() and (amount?.isNotBlank() == true)) {
+                                xchangeViewModel.convertCurrency(amount.toString().clear())
+                            } else {
+                                xchangeViewModel.clearRates()
+                            }
+                        }
                 }
             }
         }
@@ -115,23 +128,20 @@ class XchangeActivity : AppCompatActivity() {
 
         binding.recycleViewXchange.adapter = xchangeAdapter
         binding.recycleViewXchange.layoutManager = gridLayoutManager
-        binding.recycleViewXchange.addItemDecoration(xchangeItemDecorator)
+        binding.recycleViewXchange.addItemDecoration(itemDecorator)
 
         binding.textViewCurrencyBase.setOnClickListener {
-            countryResult.launch(CurrencyActivity.getIntent(this))
+            currencyResult.launch(CurrencyActivity.getIntent(this))
         }
 
-        binding.checkboxLayoutManager.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.checkboxLayoutManager.setOnCheckedChangeListener { _, isChecked ->
             xchangeAdapter.isGridLayout = isChecked
             binding.recycleViewXchange.layoutManager =
                 if (isChecked) gridLayoutManager else linearLayoutManager
         }
 
         binding.editTextAmount.requestFocus()
-
-        attachTextWatcher(binding.editTextAmount).debounce(DEBOUNCE_TIME).onEach {
-            xchangeViewModel.convertCurrency(it.toString())
-        }.launchIn(lifecycleScope)
+        binding.editTextAmount.filters = arrayOf(xchangeAmountFilter)
     }
 
     private fun attachTextWatcher(editText: AppCompatEditText) = callbackFlow<CharSequence?> {
@@ -145,7 +155,15 @@ class XchangeActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                trySend(s.toString())
+
+                if (s.toString().isNotEmpty()) {
+                    editText.removeTextChangedListener(this)
+                    editText.setText(s.toString().clear().formatAmount())
+                    editText.setSelection(editText.text?.toString()?.length ?: 0)
+                    editText.addTextChangedListener(this)
+                }
+
+                trySend(s)
             }
         }
 
@@ -170,7 +188,8 @@ class XchangeActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val DEBOUNCE_TIME = 600L
+        const val DEBOUNCE_TIME = 400L
+        const val CURRENCY_CODE = "currency_code"
     }
 
 }

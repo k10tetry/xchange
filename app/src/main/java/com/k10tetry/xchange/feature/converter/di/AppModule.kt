@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.work.WorkManager
 import com.k10tetry.xchange.BuildConfig
 import com.k10tetry.xchange.feature.converter.data.local.XchangeDataStore
 import com.k10tetry.xchange.feature.converter.data.remote.XchangeCurrencyApi
@@ -12,13 +13,15 @@ import com.k10tetry.xchange.feature.converter.data.repository.XchangeLocalReposi
 import com.k10tetry.xchange.feature.converter.data.repository.XchangeRemoteRepositoryImpl
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeLocalRepository
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeRemoteRepository
+import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeDispatcher
+import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeDispatcherImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -29,10 +32,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCurrencyApi(): XchangeCurrencyApi {
-        return Retrofit.Builder().baseUrl(BuildConfig.BASE_URL)
+    fun provideCurrencyApi(okHttpClient: OkHttpClient): XchangeCurrencyApi {
+        return Retrofit.Builder().baseUrl(BuildConfig.BASE_URL).client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create()).build()
             .create(XchangeCurrencyApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
     @Provides
@@ -49,8 +64,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDispatchers(): CoroutineDispatcher {
-        return Dispatchers.IO
+    fun provideDispatchers(): XchangeDispatcher {
+        return XchangeDispatcherImpl()
     }
 
     @Provides
@@ -59,6 +74,12 @@ object AppModule {
         return PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile(BuildConfig.DATASTORE_FILE)
         }
+    }
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+        return WorkManager.getInstance(context)
     }
 
 

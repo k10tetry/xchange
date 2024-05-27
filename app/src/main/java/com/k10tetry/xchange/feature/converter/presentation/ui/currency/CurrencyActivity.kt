@@ -7,11 +7,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import com.k10tetry.xchange.databinding.ActivityCurrencyBinding
 import com.k10tetry.xchange.feature.converter.di.qualifier.LinearLayout
+import com.k10tetry.xchange.feature.converter.presentation.ui.xchange.XchangeActivity
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeItemDecorator
+import com.k10tetry.xchange.feature.converter.presentation.utils.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,11 +53,21 @@ class CurrencyActivity : AppCompatActivity() {
     }
 
     private fun initObserver() {
-
         lifecycleScope.launch {
-            currencyViewModel.countryListFlow.collect {
-                currencyAdapter.selectedCurrency = currencyViewModel.baseCurrencyRate?.first
-                currencyAdapter.countryList = it
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                launch {
+                    currencyViewModel.countryListFlow.collect {
+                        currencyAdapter.selectedCurrency = currencyViewModel.baseCurrencyRate?.first
+                        currencyAdapter.countryList = it
+                    }
+                }
+
+                launch {
+                    currencyViewModel.toastFlow.collect {
+                        toast(it)
+                    }
+                }
             }
         }
     }
@@ -71,7 +85,7 @@ class CurrencyActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 delay(500)
                 Intent().apply {
-                    putExtra("CURRENCY", currencyAdapter.selectedCurrency)
+                    putExtra(XchangeActivity.CURRENCY_CODE, currencyAdapter.selectedCurrency)
                 }.run {
                     setResult(RESULT_OK, this)
                     finish()

@@ -6,22 +6,19 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.k10tetry.xchange.databinding.GridItemCurrencyRatesBinding
 import com.k10tetry.xchange.databinding.ListItemCurrencyRatesBinding
-import com.k10tetry.xchange.feature.converter.presentation.utils.formatAmount
+import com.k10tetry.xchange.feature.converter.common.formatAmount
 import javax.inject.Inject
 
 class XchangeAdapter @Inject constructor() :
     RecyclerView.Adapter<XchangeAdapter.XchangeHolder>() {
 
-    var countryRateList = emptyList<Pair<String, String>>()
+    var currencyRateList = emptyList<Pair<String, String>>()
         set(value) {
             field = value
             notifyDataSetChanged()
         }
 
     var isGridLayout = true
-        set(value) {
-            field = value
-        }
 
     override fun onCreateViewHolder(
         parent: ViewGroup, viewType: Int
@@ -47,13 +44,13 @@ class XchangeAdapter @Inject constructor() :
 
     override fun onBindViewHolder(xchangeHolder: XchangeHolder, position: Int) {
         when (xchangeHolder) {
-            is XchangeViewXchangeHolder -> xchangeHolder.onBind(countryRateList[position])
-            is XchangeViewXchangeHolderLinear -> xchangeHolder.onBind(countryRateList[position])
+            is XchangeViewXchangeHolder -> xchangeHolder.onBind(currencyRateList[position])
+            is XchangeViewXchangeHolderLinear -> xchangeHolder.onBind(currencyRateList[position])
         }
     }
 
     override fun getItemCount(): Int {
-        return countryRateList.size
+        return currencyRateList.size
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -65,9 +62,9 @@ class XchangeAdapter @Inject constructor() :
     inner class XchangeViewXchangeHolder(private val binding: GridItemCurrencyRatesBinding) :
         XchangeHolder(binding.root) {
 
-        fun onBind(countryRate: Pair<String, String>) {
-            binding.textViewName.text = countryRate.first
-            binding.textViewStatus.text = countryRate.second.formatAmount()
+        fun onBind(currencyRate: Pair<String, String>) {
+            binding.textViewName.text = currencyRate.first
+            binding.textViewStatus.text = currencyRate.second.formatAmount()
         }
 
     }
@@ -75,9 +72,9 @@ class XchangeAdapter @Inject constructor() :
     inner class XchangeViewXchangeHolderLinear(private val binding: ListItemCurrencyRatesBinding) :
         XchangeHolder(binding.root) {
 
-        fun onBind(countryRate: Pair<String, String>) {
-            binding.textViewName.text = countryRate.first
-            binding.textViewStatus.text = countryRate.second.formatAmount()
+        fun onBind(currencyRate: Pair<String, String>) {
+            binding.textViewName.text = currencyRate.first
+            binding.textViewStatus.text = currencyRate.second.formatAmount()
         }
 
     }

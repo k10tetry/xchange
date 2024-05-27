@@ -9,12 +9,16 @@ espressoCore = "3.5.1"
 appcompat = "1.6.1"
 material = "1.12.0"
 retrofit = "2.11.0"
-hilt = "2.48"
+hilt = "2.49"
 activity = "1.9.0"
 constraintlayout = "2.1.4"
 lifecycleRuntimeKtx = "2.8.0"
 datastore = "1.1.1"
 workRuntimeKtx = "2.9.0"
+hiltWork = "1.2.0"
+hiltCompiler = "1.2.0"
+loggingInterceptor = "4.12.0"
+leakcanary = "2.14"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,11 +37,14 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
-
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
+hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltCompiler" }
+logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "loggingInterceptor" }
+leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
-dagger-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hilt"}
+dagger-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 

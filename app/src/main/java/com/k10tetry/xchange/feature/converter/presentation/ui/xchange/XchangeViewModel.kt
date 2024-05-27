@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.k10tetry.xchange.feature.converter.domain.Resource
 import com.k10tetry.xchange.feature.converter.domain.usecase.BaseCurrencyRateUseCase
+import com.k10tetry.xchange.feature.converter.domain.usecase.ConvertCurrency
 import com.k10tetry.xchange.feature.converter.domain.usecase.GetRatesUseCase
+import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,45 +17,47 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class XchangeViewModel @Inject constructor(
     private val getRatesUseCase: GetRatesUseCase,
     private val baseCurrencyRateUseCase: BaseCurrencyRateUseCase,
-    private val dispatcher: CoroutineDispatcher
+    private val convertCurrency: ConvertCurrency,
+    private val dispatcher: XchangeDispatcher
 ) : ViewModel() {
 
     private val _currencyRateFlow = MutableStateFlow<List<Pair<String, String>>>(emptyList())
     val currencyRateFlow = _currencyRateFlow.asStateFlow()
 
-    private val _baseCurrencyFlow = MutableStateFlow(Pair("USD", "1"))
+    private val _baseCurrencyFlow = MutableStateFlow<Pair<String?, String?>>(Pair(null, null))
     val baseCurrencyFlow = _baseCurrencyFlow.asStateFlow()
 
     private var originalCurrencyRates = emptyList<Pair<String, String>>()
 
+    // TODO: Pending Review
     private val _toastFlow = MutableSharedFlow<String>()
     val toastFlow = _toastFlow.asSharedFlow()
 
+    // TODO: Retry mechanism
     fun getCurrencyRates() {
-        viewModelScope.launch(dispatcher) {
-            getRatesUseCase().collect {
-                when (it) {
-                    is Resource.Error -> {
-                        _toastFlow.emit(it.message ?: "Something Wrong")
-                    }
-
-                    is Resource.Loading -> {}
-                    is Resource.Success -> {
-                        originalCurrencyRates = it.data ?: emptyList()
-                    }
+        viewModelScope.launch(dispatcher.io) {
+            getRatesUseCase.fetchRates().catch { exception ->
+                when (exception) {
+                    is IOException -> _toastFlow.emit("Network connection error")
+                    is JSONException -> _toastFlow.emit("Parsing error")
+                    else -> _toastFlow.emit("Something went wrong")
                 }
+            }.collect {
+                originalCurrencyRates = it
             }
         }
     }
 
     fun getBaseCurrencyRates() {
-        viewModelScope.launch(dispatcher) {
+        viewModelScope.launch(dispatcher.io) {
             baseCurrencyRateUseCase.getBaseCurrencyRate().collect {
                 _baseCurrencyFlow.value = it
             }
@@ -61,38 +65,34 @@ class XchangeViewModel @Inject constructor(
     }
 
     fun convertCurrency(amount: String?) {
-
-        if (amount.isNullOrEmpty()) {
-            _currencyRateFlow.value = emptyList()
-            return
-        }
-
-        viewModelScope.launch(dispatcher) {
+        viewModelScope.launch(dispatcher.io) {
             convert(amount)
         }
     }
 
-    private suspend fun convert(amount: String) {
-        val fromRate = baseCurrencyRateUseCase.getBaseCurrencyRate().first().second.toDouble()
-        _currencyRateFlow.value = originalCurrencyRates.map {
-            val toRate = it.second.toDouble()
-            val convertedAmount = amount.toDouble().times(toRate.div(fromRate))
-
-            it.first to convertedAmount.toString()
+    fun updateAndConvert(newCurrency: String, amount: String?) {
+        viewModelScope.launch(dispatcher.io) {
+            updateBaseCurrency(newCurrency)
+            if (amount.isNullOrEmpty().not()) {
+                convert(amount)
+            }
         }
     }
 
-    fun updateBaseCurrencyAndConvert(currency: String?, amount: String?) {
+    fun clearRates() {
+        _currencyRateFlow.value = emptyList()
+    }
 
-        if (currency.isNullOrEmpty() or amount.isNullOrEmpty()) {
-            return
+    private suspend fun convert(amount: String?) = withContext(dispatcher.default) {
+        val fromRate = baseCurrencyFlow.value.second
+        _currencyRateFlow.value = originalCurrencyRates.map {
+            it.first to convertCurrency(amount, it.second, fromRate)
         }
+    }
 
-        viewModelScope.launch(dispatcher) {
-            val updateCurrencyRate = originalCurrencyRates.first { rate -> rate.first == currency }
-            baseCurrencyRateUseCase.saveBaseCurrencyRate(updateCurrencyRate)
-            convert(amount!!)
-        }
+    private suspend fun updateBaseCurrency(newCurrency: String) = withContext(dispatcher.io) {
+        val rate = originalCurrencyRates.first { rate -> rate.first == newCurrency }.second
+        baseCurrencyRateUseCase.saveBaseCurrencyRate(newCurrency to rate)
     }
 
 }

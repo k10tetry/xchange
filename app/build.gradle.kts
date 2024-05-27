@@ -62,9 +62,13 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.datastore.preferences)
     implementation(libs.work.runtime.ktx)
+    implementation(libs.hilt.work)
+    implementation(libs.logging.interceptor)
+    implementation(libs.logging.interceptor)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    debugImplementation(libs.leakcanary.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,4 +80,5 @@ dependencies {
     // DI
     implementation(libs.google.hilt)
     kapt(libs.google.hilt.compiler)
+    kapt(libs.hilt.compiler)
 }
