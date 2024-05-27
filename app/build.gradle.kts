@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.k10tetry.xchange"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,25 +60,40 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.datastore.preferences)
-    implementation(libs.work.runtime.ktx)
-    implementation(libs.hilt.work)
-    implementation(libs.logging.interceptor)
-    implementation(libs.logging.interceptor)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.work.testing)
+
+    // Memory Leak
     debugImplementation(libs.leakcanary.android)
+
+    // Unit Test
+    testImplementation(libs.android.test.core.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.google.truth)
+    testImplementation(libs.mockito)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.json)
+
+    // Instrument Test
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.runner)
 
     // Network
     implementation(libs.square.retrofit)
     implementation(libs.square.retrofit.gson.converter)
+    implementation(libs.logging.interceptor)
 
     // DI
     implementation(libs.google.hilt)
     kapt(libs.google.hilt.compiler)
     kapt(libs.hilt.compiler)
+
+    // Worker
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.hilt.work)
+
+    // Local
+    implementation(libs.datastore.preferences)
 }

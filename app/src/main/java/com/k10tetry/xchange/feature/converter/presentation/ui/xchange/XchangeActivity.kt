@@ -66,7 +66,7 @@ class XchangeActivity : AppCompatActivity() {
             if (it.resultCode == RESULT_OK) {
                 it.data?.extras?.getString(CURRENCY_CODE)?.let { currency ->
                     xchangeViewModel.updateAndConvert(
-                        currency, binding.editTextAmount.text.toString()
+                        currency, binding.editTextAmount.text.toString().clear()
                     )
                 }
             }

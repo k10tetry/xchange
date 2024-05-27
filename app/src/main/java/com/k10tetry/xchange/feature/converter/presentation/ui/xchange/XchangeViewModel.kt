@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.k10tetry.xchange.feature.converter.common.ExceptionType
 import com.k10tetry.xchange.feature.converter.domain.usecase.BaseCurrencyRateUseCase
-import com.k10tetry.xchange.feature.converter.domain.usecase.ConvertCurrency
+import com.k10tetry.xchange.feature.converter.domain.usecase.ConvertCurrencyUseCase
 import com.k10tetry.xchange.feature.converter.domain.usecase.GetRatesUseCase
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class XchangeViewModel @Inject constructor(
     private val getRatesUseCase: GetRatesUseCase,
     private val baseCurrencyRateUseCase: BaseCurrencyRateUseCase,
-    private val convertCurrency: ConvertCurrency,
+    private val convertCurrencyUseCase: ConvertCurrencyUseCase,
     private val dispatcher: XchangeDispatcher
 ) : ViewModel() {
 
@@ -82,7 +82,7 @@ class XchangeViewModel @Inject constructor(
     private suspend fun convert(amount: String?) = withContext(dispatcher.default) {
         val fromRate = baseCurrencyFlow.value.second
         _currencyRateFlow.value = originalCurrencyRates.map {
-            it.first to convertCurrency(amount, it.second, fromRate)
+            it.first to convertCurrencyUseCase(amount, it.second, fromRate)
         }
     }
 

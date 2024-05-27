@@ -1,11 +1,11 @@
 [versions]
 agp = "8.4.1"
+json = "20220924"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 activityKtx = "1.9.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
-espressoCore = "3.5.1"
 appcompat = "1.6.1"
 material = "1.12.0"
 retrofit = "2.11.0"
@@ -14,19 +14,26 @@ activity = "1.9.0"
 constraintlayout = "2.1.4"
 lifecycleRuntimeKtx = "2.8.0"
 datastore = "1.1.1"
+runner = "1.5.2"
 workRuntimeKtx = "2.9.0"
 hiltWork = "1.2.0"
 hiltCompiler = "1.2.0"
 loggingInterceptor = "4.12.0"
 leakcanary = "2.14"
+googleTruth = "1.1.3"
+mockito = "5.12.0"
+androidTestoreKtxVersion = "1.5.0"
+coroutinesTest = "1.8.1"
+workTesting = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }
+json = { module = "org.json:json", version.ref = "json" }
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 square-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
@@ -41,6 +48,11 @@ hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWo
 hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltCompiler" }
 logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "loggingInterceptor" }
 leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
+google-truth = { group = "com.google.truth", name = "truth", version.ref = "googleTruth" }
+mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+android-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "androidTestoreKtxVersion" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "workTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

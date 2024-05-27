@@ -37,7 +37,7 @@ class CurrencyApplication : Application(), Configuration.Provider {
     private fun setWorker() {
         val periodicWorkRequest = PeriodicWorkRequest.Builder(
             XchangeWorker::class.java,
-            PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
+            2 * PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
             TimeUnit.MINUTES
         ).build()
 

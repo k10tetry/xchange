@@ -2,7 +2,7 @@ package com.k10tetry.xchange.feature.converter.domain.usecase
 
 import javax.inject.Inject
 
-class ConvertCurrency @Inject constructor() {
+class ConvertCurrencyUseCase @Inject constructor() {
 
     operator fun invoke(amount: String?, toRate: String?, fromRate: String?): String {
         return if (validate(amount) || validate(fromRate) || validate(toRate)) {
