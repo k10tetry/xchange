@@ -2,6 +2,7 @@ package com.k10tetry.xchange.feature.converter.domain.usecase
 
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeLocalRepository
 import com.k10tetry.xchange.feature.converter.domain.repository.XchangeRemoteRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.json.JSONException
@@ -44,7 +45,7 @@ class GetCurrenciesUseCase @Inject constructor(
         val keys = jsonRates.keys()
         while (keys.hasNext()) {
             val currency = keys.next()
-            currencies.add(currency to jsonRates.optDouble(currency).toString())
+            currencies.add(currency to jsonRates.optString(currency).toString())
         }
         return currencies
     }

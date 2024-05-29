@@ -18,7 +18,6 @@ import com.k10tetry.xchange.feature.converter.di.qualifier.LinearLayout
 import com.k10tetry.xchange.feature.converter.presentation.ui.xchange.XchangeActivity
 import com.k10tetry.xchange.feature.converter.presentation.utils.XchangeItemDecorator
 import com.k10tetry.xchange.feature.converter.presentation.utils.snackbar
-import com.k10tetry.xchange.feature.converter.presentation.utils.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

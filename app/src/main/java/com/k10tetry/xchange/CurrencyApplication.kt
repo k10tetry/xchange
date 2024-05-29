@@ -5,7 +5,9 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.k10tetry.xchange.feature.converter.presentation.worker.XchangeWorker
@@ -39,7 +41,9 @@ class CurrencyApplication : Application(), Configuration.Provider {
             XchangeWorker::class.java,
             2 * PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
             TimeUnit.MINUTES
-        ).build()
+        ).setInitialDelay(2 * PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MINUTES)
+            .setConstraints(Constraints(NetworkType.CONNECTED))
+            .build()
 
         workManager.enqueueUniquePeriodicWork(
             XCHANGE_WORKER,
